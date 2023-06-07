@@ -13,30 +13,60 @@ let city_lon;
 var geo_location_api;
 
 
-
 var pageLaunch = async () => {
     search_storage = getStorage();
+    previousSearch(search_storage);
     [city_lat, city_lon] = await searchGeo();
     current();
     callFiveDay();
     storeCity(search_storage);
-    
 }
 
-var current = () => {
-    const current = 'https://api.openweathermap.org/data/2.5/weather?lat=' + city_lat + '&lon=' + city_lon + '&appid=' + api_key;
-    fetch(current)
+var previousSearch = () => {
+    if (!search_storage) {
+        return;
+    }
+    search_history.innerHTML = '';
+    for (var i in search_storage) {
+        var search_history_button = document.createElement('button')
+        search_history_button.setAttribute('id', search_storage[i])
+        search_history_button.innerText = search_storage[i]
+        search_history.appendChild(search_history_button)
+    }
+}
+
+var current = async () => {
+    const currentWeatherAPI = 'http://api.openweathermap.org/data/2.5/weather?lat=' + city_lat + '&lon=' + city_lon + '&appid=' + api_key;
+    await fetch(currentWeatherAPI)
         .then(function (response) {
             return response.json();
         })
         .then(function (data){
             console.log(data)
+            var temp = Math.round(((data.main.temp)-273.15) * (9/5) + 32);
+                
+            var humidity = Math.round(data.main.humidity/8);
+            var windSpeed = Math.round(data.wind.speed/8);
+            var date_string = dayjs().format('MMM DD, YYYY')
+            var icon = data.weather[0].icon
+
+            current_weather.innerHTML = '';
+            const todays_weather = document.createElement("div");
+            todays_weather.innerHTML = 
+                '<h2>' + data.name + '</h2>' +
+                '<div>Today is ' + date_string + '. have a great day!</div>' +
+                '<img src="http://openweathermap.org/img/wn/' + icon + '@2x.png" />' +
+                '<div>Temp: '+ temp +'</div>' +
+                '<div>Wind Speed: '+ windSpeed +'mph</div>' + 
+                '<div>Humidity: '+ humidity +'%</div>' +
+                '<br/>'
+            current_weather.appendChild(todays_weather);
         })
 }
 
-var callFiveDay = () => {
+var callFiveDay = async () => {
     const weather_api = 'http://api.openweathermap.org/data/2.5/forecast?lat=' + city_lat + '&lon=' + city_lon + '&appid=' + api_key;
-    fetch(weather_api )
+    await fetch(weather_api )
         .then(function (response) {
             return response.json();
         })
@@ -66,8 +96,6 @@ var callFiveDay = () => {
                 var date = data.list[i].dt_txt
                 var date_string = dayjs(date).format('MMM DD, YYYY')
                 var icon = data.list[i + 3].weather[0].icon
-                console.log(data.list[i].weather[0].icon)
-                //console.log("The date is " + date_string + " with an average temperature of " + temp + ". The sky will have around " + cloudyness + "% cloudyness and there is a windspeed of " + windSpeed + "mph with around " + humidity + "% humidity.");
 
                 // generate 5 widgets
                 const forecast_widget = document.createElement("a");
@@ -81,9 +109,6 @@ var callFiveDay = () => {
                 five_day_forecast.appendChild(forecast_widget);
             }
         })
-
-    
-    
 }
 
 var searchGeo = async () => {
@@ -110,6 +135,7 @@ var storeCity = (search_storage) => {
         search_storage.push(city_name)
     }
     localStorage.setItem('weather_search', JSON.stringify(search_storage));
+    previousSearch(search_storage);
 }
 
 search_button.addEventListener("click", function(event){
@@ -117,25 +143,18 @@ search_button.addEventListener("click", function(event){
     five_day_forecast.innerHTML = '';
     city_name = search_input.value;
     geo_location_api = 'https://api.openweathermap.org/geo/1.0/direct?q=' + city_name + '&appid=' + api_key;
-    console.log(city_name)
     pageLaunch();
 });
 
+search_history.addEventListener("click", function(event) {
+    event.preventDefault()
+    var element = event.target;
+    city_name = element.innerText;
+    five_day_forecast.innerHTML = '';
+    geo_location_api = 'https://api.openweathermap.org/geo/1.0/direct?q=' + city_name + '&appid=' + api_key;
+    pageLaunch();
+});
 
-
-// Search for a city (using its geo location)
-    // this requires finding the longiture and latitude of that city
-    // then take that and use the city name to get the city id
-// use the city name to find the current weather
-// use the city name to find the 5 day forcast
-// store the searches in clickable buttons to recal 
-    // buttons will have the title 
-    //buttons will change the state of the app to that city 
-
-
-
-
-
-
+pageLaunch()
 
 
