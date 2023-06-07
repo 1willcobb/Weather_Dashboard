@@ -17,6 +17,7 @@ var pageLaunch = async () => {
     search_storage = getStorage();
     previousSearch(search_storage);
     [city_lat, city_lon] = await searchGeo();
+    exampleThree();
     current();
     callFiveDay();
     storeCity(search_storage);
@@ -37,25 +38,23 @@ var previousSearch = () => {
 }
 
 var current = async () => {
-    const currentWeatherAPI = 'http://api.openweathermap.org/data/2.5/weather?lat=' + city_lat + '&lon=' + city_lon + '&appid=' + api_key;
-    await fetch(currentWeatherAPI)
+    const threeAPI = 'https://api.openweathermap.org/data/3.0/onecall?lat=' + city_lat + '&lon=' + city_lon + '&appid=' + api_key;
+    await fetch(threeAPI)
         .then(function (response) {
             return response.json();
         })
         .then(function (data){
-            console.log(data)
-            var temp = Math.round(((data.main.temp)-273.15) * (9/5) + 32);
-                
-            var humidity = Math.round(data.main.humidity/8);
-            var windSpeed = Math.round(data.wind.speed/8);
-            var date_string = dayjs().format('MMM DD, YYYY')
-            var icon = data.weather[0].icon
+            var temp = Math.round(((data.current.temp)-273.15) * (9/5) + 32);
+            var humidity = data.current.humidity;
+            var windSpeed = data.current.wind_speed;
+            var date_string = dayjs.unix(data.daily[0].dt).format('MMM DD, YYYY');
+            var icon = data.current.weather[0].icon
 
             current_weather.innerHTML = '';
             const todays_weather = document.createElement("div");
             todays_weather.setAttribute('class', 'widget');
             todays_weather.innerHTML = 
-                '<h2>' + data.name + '</h2>' +
+                '<h2>' + city_name + '</h2>' +
                 '<div>Today is ' + date_string + '. have a great day!</div>' +
                 '<img src="http://openweathermap.org/img/wn/' + icon + '@2x.png" />' +
                 '<div>Temp: '+ temp +'</div>' +
@@ -73,7 +72,6 @@ var callFiveDay = async () => {
             return response.json();
         })
         .then(function (data){
-            console.log(data)
             for (var i = 0; i < data.list.length; i += 8) {
                 
                 var avgTemp = 0;
@@ -134,7 +132,6 @@ var getStorage = () => {
 }
 
 var storeCity = (search_storage) => {
-    console.log(search_storage);
     if (!search_storage.includes(city_name)) {
         search_storage.push(city_name)
     }
@@ -158,6 +155,20 @@ search_history.addEventListener("click", function(event) {
     geo_location_api = 'https://api.openweathermap.org/geo/1.0/direct?q=' + city_name + '&appid=' + api_key;
     pageLaunch();
 });
+
+
+var exampleThree = async () => {
+    const threeAPI = 'https://api.openweathermap.org/data/3.0/onecall?lat=' + city_lat + '&lon=' + city_lon + '&appid=' + api_key;
+    await fetch(threeAPI)
+        .then(function (response) {
+            return response.json();
+        })
+        .then(function (data){
+            console.log(data)
+        })
+}
+
+
 
 pageLaunch()
 
