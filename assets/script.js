@@ -22,6 +22,7 @@ var pageLaunch = async () => {
     storeCity(search_storage);
 }
 
+
 var previousSearch = () => {
     if (!search_storage) {
         return;
@@ -52,6 +53,7 @@ var current = async () => {
 
             current_weather.innerHTML = '';
             const todays_weather = document.createElement("div");
+            todays_weather.setAttribute('class', 'widget');
             todays_weather.innerHTML = 
                 '<h2>' + data.name + '</h2>' +
                 '<div>Today is ' + date_string + '. have a great day!</div>' +
@@ -66,7 +68,7 @@ var current = async () => {
 
 var callFiveDay = async () => {
     const weather_api = 'http://api.openweathermap.org/data/2.5/forecast?lat=' + city_lat + '&lon=' + city_lon + '&appid=' + api_key;
-    await fetch(weather_api )
+    await fetch(weather_api)
         .then(function (response) {
             return response.json();
         })
@@ -99,6 +101,8 @@ var callFiveDay = async () => {
 
                 // generate 5 widgets
                 const forecast_widget = document.createElement("a");
+                forecast_widget.setAttribute('class', 'widget');
+                forecast_widget.setAttribute('id', 'fiveday');
                 forecast_widget.innerHTML = 
                     '<div>Date: ' + date_string + '</div>' +
                     '<img src="https://openweathermap.org/img/wn/' + icon + '@2x.png" />' +
