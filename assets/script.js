@@ -17,7 +17,6 @@ var pageLaunch = async () => {
     search_storage = getStorage();
     previousSearch(search_storage);
     [city_lat, city_lon] = await searchGeo();
-    exampleThree();
     current();
     callFiveDay();
     storeCity(search_storage);
@@ -66,36 +65,18 @@ var current = async () => {
 }
 
 var callFiveDay = async () => {
-    const weather_api = 'http://api.openweathermap.org/data/2.5/forecast?lat=' + city_lat + '&lon=' + city_lon + '&appid=' + api_key;
+    const weather_api = 'https://api.openweathermap.org/data/3.0/onecall?lat=' + city_lat + '&lon=' + city_lon + '&appid=' + api_key;
     await fetch(weather_api)
         .then(function (response) {
             return response.json();
         })
         .then(function (data){
-            for (var i = 0; i < data.list.length; i += 8) {
-                
-                var avgTemp = 0;
-                var avgWind = 0;
-                var avgHumidity = 0;
-                var avgCloudyness = 0;
-
-                // loop for averages 
-                for (var j = i; j < i + 8; j++){
-                    avgTemp += data.list[j].main.temp;
-                    avgWind += data.list[j].wind.speed;
-                    avgHumidity += data.list[j].main.humidity;
-                    avgCloudyness += data.list[j].clouds.all;
-                }
-
-                avgTemp = avgTemp / 8
-                var temp = Math.round(((avgTemp)-273.15) * (9/5) + 32);
-                
-                var humidity = Math.round(avgHumidity/8);
-                var windSpeed = Math.round(avgWind/8);
-                var cloudyness = Math.round(avgCloudyness/8);
-                var date = data.list[i].dt_txt
-                var date_string = dayjs(date).format('MMM DD, YYYY')
-                var icon = data.list[i + 3].weather[0].icon
+            for (var i = 1; i < 6; i ++) {
+                var temp = Math.round(((data.daily[i].temp.day)-273.15) * (9/5) + 32);
+                var humidity = data.daily[i].humidity;
+                var windSpeed = data.daily[i].wind_speed;
+                var date_string = dayjs.unix(data.daily[i].dt).format('MMM DD, YYYY');
+                var icon = data.daily[i].weather[0].icon
 
                 // generate 5 widgets
                 const forecast_widget = document.createElement("a");
@@ -155,18 +136,6 @@ search_history.addEventListener("click", function(event) {
     geo_location_api = 'https://api.openweathermap.org/geo/1.0/direct?q=' + city_name + '&appid=' + api_key;
     pageLaunch();
 });
-
-
-var exampleThree = async () => {
-    const threeAPI = 'https://api.openweathermap.org/data/3.0/onecall?lat=' + city_lat + '&lon=' + city_lon + '&appid=' + api_key;
-    await fetch(threeAPI)
-        .then(function (response) {
-            return response.json();
-        })
-        .then(function (data){
-            console.log(data)
-        })
-}
 
 
 
